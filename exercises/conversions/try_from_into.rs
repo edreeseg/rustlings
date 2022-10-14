@@ -23,8 +23,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
 // You need to create an implementation for a tuple of three integers,
@@ -38,6 +36,12 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let convert = |n| u8::try_from(n).map_err(|_| IntoColorError::IntConversion);
+        let (red, green, blue) = tuple;
+        let red = convert(red)?;
+        let green = convert(green)?;
+        let blue = convert(blue)?;
+        Ok(Color { red, green, blue })
     }
 }
 
@@ -45,6 +49,12 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let convert = |n| u8::try_from(n).map_err(|_| IntoColorError::IntConversion);
+        let [red, green, blue] = arr;
+        let red = convert(red)?;
+        let green = convert(green)?;
+        let blue = convert(blue)?;
+        Ok(Color { red, green, blue })
     }
 }
 
@@ -52,6 +62,22 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        let convert = |&n| u8::try_from(n).map_err(|_| IntoColorError::IntConversion);
+        let check_next_value = |next| {
+            if let Some(n) = next {
+                convert(n)
+            } else {
+                Err(IntoColorError::BadLen)
+            }
+        };
+        let mut iter = slice.iter();
+        let red = check_next_value(iter.next())?;
+        let green = check_next_value(iter.next())?;
+        let blue = check_next_value(iter.next())?;
+        if iter.next().is_some() {
+            return Err(IntoColorError::BadLen);
+        }
+        Ok(Color { red, green, blue })
     }
 }
 
